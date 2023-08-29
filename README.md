@@ -16,10 +16,13 @@ In this tutorial, we will drive into VxLAN technology, Docker containers, and th
 
 We will create two host machine at GCP (Google Cloud Platform) and two container in the two host machine. Then, we will ping from one container in first host machine to another container in second host machine.
 
+
 ## Prerequisites:
 
 Basic familiarity with Linux and networking concepts.
+
 GCP account, Basic knowladge of VPC, Instance, Subnet etc
+
 
 ## Step 1: Setting Up the Environment:
 
@@ -31,6 +34,7 @@ At first, login at your GCP account, then create one VPC (virtual private cloud)
 </p>
 </figure>
  
+
 Two VM intances looks like this diagram - 
 
 <figure >
@@ -39,6 +43,7 @@ Two VM intances looks like this diagram -
 </p>
 </figure>
  
+
 Now swith to root user. 
 
     sudo -i
@@ -54,6 +59,7 @@ You will get output like this.
    <img src="./assests/5.png" alt="Dataflow Diagram" style="background-color:white" />
 </p>
 </figure>
+
 
 ## Step 2: Docker client installing:
 
@@ -110,6 +116,7 @@ For Host 2:
 </p>
 </figure>
 
+
 Now type the command.
 
 For Host 1:
@@ -124,9 +131,9 @@ For Host 1:
        valid_lft forever preferred_lft forever
     inet6 ::1/128 scope host 
        valid_lft forever preferred_lft forever
-    2: ens4: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    2: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 08:00:27:1f:0c:6e brd ff:ff:ff:ff:ff:ff
-    inet 192.168.56.10/24 brd 192.168.56.255 scope global ens4
+    inet 192.168.56.10/24 brd 192.168.56.255 scope global enp0s8
     valid_lft forever preferred_lft forever
     inet6 fe80::a00:27ff:fe1f:c6e/64 scope link
     valid_lft forever preferred_lft forever
@@ -151,9 +158,9 @@ For Host 2:
        valid_lft forever preferred_lft forever
     inet6 ::1/128 scope host 
        valid_lft forever preferred_lft forever 
-    2: ens4: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    2: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 08:00:27:d8:5a:c9 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.56.11/24 brd 192.168.56.255 scope global ens4
+    inet 192.168.56.11/24 brd 192.168.56.255 scope global enp0s8
     valid_lft forever preferred_lft forever
     inet6 fe80::a00:27ff:fed8:5ac9/64 scope link
     valid_lft forever preferred_lft forever
@@ -165,6 +172,7 @@ For Host 2:
     link/ether 02:42:25:c9:9c:2e brd ff:ff:ff:ff:ff:ff
     inet 172.18.0.1/16 brd 172.18.255.255 scope global br-6f5786b0f1c0
     valid_lft forever preferred_lft forever
+
 
 ## Step 3: Run Docker Container:
 
@@ -248,6 +256,7 @@ For Host 2:
 </p>
 </figure>
 
+
 ## Step 4: Access Docker Container:
 
 For Host 1:
@@ -301,6 +310,7 @@ For Host 2:
 
 Now type exit to came out from container.
 
+
 ## Step 5: Creating VxLAN Tunnel:
 
 It’s time to create a VxLAN tunnel to establish communication between two hosts running containers. Then attch the vxlan to the docker bridge. Make sure the VNI ID is the same for both hosts.
@@ -323,7 +333,7 @@ For Host 1:
     # VNI ID is 100
     # dstport should be 4789 which a udp standard port for vxlan communication
     # 192.168.56.11 is the ip of another host
-    sudo ip link add vxlan-demo type vxlan id 100 remote 192.168.56.11 dstport 4789 dev ens4
+    sudo ip link add vxlan-demo type vxlan id 100 remote 192.168.56.11 dstport 4789 dev enp0s8
     
     # check interface list if the vxlan interface created
     ip a | grep vxlan
@@ -343,10 +353,10 @@ For Host 1:
     #terminal output
     Kernel IP routing table
     Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
-    0.0.0.0         192.168.56.1    0.0.0.0         UG    100    0        0 ens4
+    0.0.0.0         192.168.56.1    0.0.0.0         UG    100    0        0 enp0s8
     172.17.0.0      0.0.0.0         255.255.0.0     U     0      0        0 docker0
     172.18.0.0      0.0.0.0         255.255.0.0     U     0      0        0 br-9cf37989bab1
-    192.168.56.1    0.0.0.0         255.255.255.0   U     0      0        0 ens4
+    192.168.56.1    0.0.0.0         255.255.255.0   U     0      0        0 enp0s8
 
 For Host 2:
 
@@ -363,7 +373,7 @@ For Host 2:
     
     # 192.168.56.10 is the ip of another host
     # make sure VNI ID is the same on both hosts, this is important
-    sudo ip link add vxlan-demo type vxlan id 100 remote 192.168.56.10 dstport 4789 dev ens4
+    sudo ip link add vxlan-demo type vxlan id 100 remote 192.168.56.10 dstport 4789 dev enp0s8
     
     # check interface list if the vxlan interface created
     ip a | grep vxlan
@@ -383,10 +393,11 @@ For Host 2:
     # terminal output
     Kernel IP routing table
     Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
-    0.0.0.0         192.168.56.1    0.0.0.0         UG    100    0        0 ens4
+    0.0.0.0         192.168.56.1    0.0.0.0         UG    100    0        0 enp0s8
     172.17.0.0      0.0.0.0         255.255.0.0     U     0      0        0 docker0
     172.18.0.0      0.0.0.0         255.255.0.0     U     0      0        0 br-6f5786b0f1c0
-    192.168.56.1    0.0.0.0         255.255.255.0   U     0      0        0 ens4
+    192.168.56.1    0.0.0.0         255.255.255.0   U     0      0        0 enp0s8
+
 
 ## Step 6: Testing the connectivity:
 Now test the connectivity. It should work now. A Vxlan Overlay Network Tunnel has been created.
@@ -426,12 +437,13 @@ For Host 2:
     2 packets transmitted, 2 received, 0% packet loss, time 1002ms
     rtt min/avg/max/mdev = 1.551/1.579/1.607/0.028 ms
 
+
 And finally we have successfully ping from one container in one host to another container from second host.
 
 <figure >
 <p align="center">
-  <img src="./assests/ping_output.png" alt="Overall Dataflow Diagram" style="background-color:white" />
-  <p align="center">Overall Dataflow Diagram</p>
+  <img src="./assests/ping_output.png" alt="Ping Command" style="background-color:white" />
+  <p align="center">Ping one Container to another Container</p>
 </p>
 </figure>
 
